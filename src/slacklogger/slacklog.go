@@ -6,8 +6,9 @@ import (
 )
 
 type SlackLogger struct {
-	client *slacker.APIClient
-	scache cache
+	client  *slacker.APIClient
+	scache  cache
+	msgPipe chan LoggedMessage
 }
 
 func (s *SlackLogger) updateChannelsCache() {
@@ -30,6 +31,7 @@ func New(token string) *SlackLogger {
 	return &SlackLogger{
 		slacker.NewAPIClient(token, ""),
 		newCache(),
+		make(chan LoggedMessage),
 	}
 }
 
@@ -59,11 +61,22 @@ func (s *SlackLogger) HandleMessages() {
 
 			lm := loggedMsgFromSlackMsg(msg, &s.scache)
 
-			fmt.Printf("%s\n", lm)
+			select {
+			case s.msgPipe <- *lm:
+			default:
+				fmt.Println(lm)
+			}
+
 		} else if event.Type == "channel_create" {
 			fmt.Printf("new channel %s\n")
 		} else if event.Type == "team_joined" {
 			fmt.Printf("user joined a team\n")
 		}
 	}
+}
+
+func (s *SlackLogger) GetMessage() LoggedMessage {
+
+	msg := <-s.msgPipe
+	return msg
 }
