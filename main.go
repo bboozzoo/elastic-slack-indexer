@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"logger"
 	"os"
 	"slacklogger"
 )
@@ -56,8 +57,22 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	log := logger.NewLogstashLogger(conf.Host, conf.Port)
+	if log == nil {
+		panic("failed to setup logger")
+	}
 	sl := slacklogger.New(conf.Token)
 
 	sl.UpdateCache()
+
+	go func() {
+		for {
+			msg := sl.GetMessage()
+			fmt.Printf("got msg: %s\n", msg)
+			log.Writeln(msg)
+		}
+	}()
+
 	sl.HandleMessages()
 }
