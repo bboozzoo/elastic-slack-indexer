@@ -12,6 +12,8 @@ import (
 
 type config struct {
 	Token string `json:"token"`
+	Host  string `json:"host"`
+	Port  int    `json:"port"`
 }
 
 func configFromFile(path string) (*config, error) {
