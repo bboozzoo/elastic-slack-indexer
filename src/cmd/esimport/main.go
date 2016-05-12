@@ -22,7 +22,10 @@
 package main
 
 import (
+	"config"
 	"flag"
+	"importer"
+	"io"
 	"logger"
 	"os"
 )
@@ -33,22 +36,71 @@ var (
 )
 
 func main() {
-	var config string
+	var conffile string
 	var debug bool
-	flag.StringVar(&config, "config", "", "configuration file path")
+	var channel string
+	var infile string
+	flag.StringVar(&conffile, "config", "", "configuration file path")
+	flag.StringVar(&channel, "channel", "", "channel name")
+	flag.StringVar(&infile, "infile", "", "input file path")
 	flag.BoolVar(&debug, "debug", false, "debug logging")
 	flag.Parse()
-
-	if config == "" {
-		flag.Usage()
-		os.Exit(1)
-	}
 
 	logger.SetupLocalLogger(logger.LocalLoggerConfig{
 		Debug: debug,
 	})
-
 	ll := logger.NewLocalLogger()
 
-	ll.Debug("ping")
+	if conffile == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	if infile == "" {
+		ll.Fatalf("need input file, use -infile\n")
+	}
+
+	if channel == "" {
+		ll.Fatalf("need channel name, use -channel\n")
+	}
+
+	if err := config.Load(conffile); err != nil {
+		ll.Fatalf("failed to load configuration: %s", err)
+	}
+
+	el, err := logger.NewElasticLogger(logger.ElasticLoggerConfig{
+		Url:   config.C.Url,
+		Index: config.C.Index,
+	})
+	if err != nil {
+		ll.Fatalf("failed to setup elastic search logger: %s", err)
+	}
+
+	f, err := os.OpenFile(infile, os.O_RDONLY, 0)
+	if err != nil {
+		ll.Fatalf("failed to open source file: %s", err)
+	}
+	defer f.Close()
+
+	wi := importer.NewWeechatImport(f, channel)
+	for {
+		m, err := wi.Next()
+		if err == io.EOF {
+			// all done
+			break
+		}
+
+		if err != nil {
+			ll.Fatalf("error processing input file: %s", err)
+		}
+
+		if m == nil {
+			continue
+		}
+
+		ll.Debugf("message: %+v", m)
+		if err := el.LogMessage(m); err != nil {
+			ll.Errorf("failed to log message: %s", err)
+		}
+	}
 }
