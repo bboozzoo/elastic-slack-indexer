@@ -22,41 +22,22 @@
 package main
 
 import (
-	"encoding/json"
-	"errors"
 	"flag"
-	"fmt"
-	"io/ioutil"
 	"logger"
 	"os"
 	"slacklogger"
 )
 
-type config struct {
-	Token string `json:"token"`
-	Host  string `json:"host"`
-	Port  int    `json:"port"`
-}
-
-func configFromFile(path string) (*config, error) {
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("failed to open config file %s: %s", path, err.Error()))
-	}
-
-	fmt.Printf("config data: %s\n", data)
-
-	conf := &config{}
-	if err := json.Unmarshal(data, &conf); err != nil {
-		return nil, errors.New(fmt.Sprintf("failed to parse config: %s", err.Error()))
-	}
-	fmt.Printf("config: %s\n", conf)
-	return conf, nil
-}
+var (
+	// global local logger
+	ll *logger.LocalLogger
+)
 
 func main() {
 	var config string
+	var debug bool
 	flag.StringVar(&config, "config", "", "configuration file path")
+	flag.BoolVar(&debug, "debug", false, "debug logging")
 	flag.Parse()
 
 	if config == "" {
@@ -64,24 +45,36 @@ func main() {
 		os.Exit(1)
 	}
 
-	conf, err := LoadConfig(flag.Arg(0))
+	logger.SetupLocalLogger(logger.LocalLoggerConfig{
+		Debug: debug,
+	})
+
+	ll := logger.NewLocalLogger()
+
+	err := LoadConfig(config)
 	if err != nil {
-		panic(err)
+		ll.Errorf("failed to load config: %s", err)
+		os.Exit(1)
 	}
 
-	log := logger.NewLogstashLogger(conf.Host, conf.Port)
-	if log == nil {
-		panic("failed to setup logger")
+	err = logger.SetupElasticLogger(logger.ElasticLoggerConfig{
+		Url:   C.Url,
+		Index: C.Index,
+	})
+	if err != nil {
+		ll.Errorf("failed to setup elastic search logger: %s", err)
+		os.Exit(1)
 	}
-	sl := slacklogger.New(conf.Token)
+
+	sl := slacklogger.New(C.Token)
 
 	sl.UpdateCache()
 
 	go func() {
 		for {
 			msg := sl.GetMessage()
-			fmt.Printf("got msg: %s\n", msg)
-			log.Writeln(msg)
+			ll.Debugf("got msg: %s\n", msg)
+			ll.Debug(msg)
 		}
 	}()
 
