@@ -54,27 +54,17 @@ func configFromFile(path string) (*config, error) {
 	return conf, nil
 }
 
-const (
-	usage = "" +
-		`Usage of 'slack-logger' command:
-
-  slack-logger <config-file>
-`
-)
-
 func main() {
+	var config string
+	flag.StringVar(&config, "config", "", "configuration file path")
+	flag.Parse()
 
-	flag.Usage = func() {
-		fmt.Println(usage)
+	if config == "" {
+		flag.Usage()
 		os.Exit(1)
 	}
 
-	flag.Parse()
-	if flag.NArg() < 1 {
-		flag.Usage()
-	}
-
-	conf, err := configFromFile(flag.Arg(0))
+	conf, err := LoadConfig(flag.Arg(0))
 	if err != nil {
 		panic(err)
 	}
