@@ -1,0 +1,59 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/Sirupsen/logrus",
+			"repository": "https://github.com/Sirupsen/logrus",
+			"revision": "cd7d1bbe41066b6c1f19780f895901052150a575",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/bobbytables/slacker",
+			"repository": "https://github.com/bobbytables/slacker",
+			"revision": "0a05912e400e9aacca7296855ba9fb874cdf34c5",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/gorilla/websocket",
+			"repository": "https://github.com/gorilla/websocket",
+			"revision": "1f512fc3f05332ba7117626cdfb4e07474e58e60",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/pkg/errors",
+			"repository": "https://github.com/pkg/errors",
+			"revision": "d814416a46cbb066b728cfff58d30a986bc9ddbe",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/sdming/gosnow",
+			"repository": "https://github.com/sdming/gosnow",
+			"revision": "3a05c415e886bd8d06522975d2c3458eafe93f04",
+			"branch": "master"
+		},
+		{
+			"importpath": "gopkg.in/airbrake/gobrake.v2",
+			"repository": "https://gopkg.in/airbrake/gobrake.v2",
+			"revision": "31c8ff1fb8b79a6947e6565e9a6df535f98a6b94",
+			"branch": "master"
+		},
+		{
+			"importpath": "gopkg.in/gcfg.v1",
+			"repository": "https://gopkg.in/gcfg.v1",
+			"revision": "083575c3955c85df16fe9590cceab64d03f5eb6e",
+			"branch": "v1"
+		},
+		{
+			"importpath": "gopkg.in/gemnasium/logrus-airbrake-hook.v2",
+			"repository": "https://gopkg.in/gemnasium/logrus-airbrake-hook.v2",
+			"revision": "31e6fd4bd5a98d8ee7673d24bc54ec73c31810dd",
+			"branch": "master"
+		},
+		{
+			"importpath": "gopkg.in/olivere/elastic.v3",
+			"repository": "https://gopkg.in/olivere/elastic.v3",
+			"revision": "9ccf48af2c7c0a61ce157876b2be9287679d261b",
+			"branch": "master"
+		}
+	]
+}
