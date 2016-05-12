@@ -52,6 +52,12 @@ func SetupLocalLogger(lc LocalLoggerConfig) {
 }
 
 func NewLocalLogger() *LocalLogger {
+	if baseLocal == nil {
+		SetupLocalLogger(LocalLoggerConfig{
+			Debug: true,
+		})
+	}
+
 	return &LocalLogger{
 		*baseLocal,
 	}
