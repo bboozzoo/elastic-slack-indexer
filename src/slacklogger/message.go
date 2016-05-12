@@ -91,7 +91,7 @@ func loggedMsgFromSlackMsg(smsg *slacker.RTMMessage, c *cache) *LoggedMessage {
 	return &LoggedMessage{
 		user,
 		channel,
-		tm.String(),
+		tm.UTC().Format(time.RFC3339Nano),
 		text,
 	}
 }
