@@ -57,7 +57,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = logger.SetupElasticLogger(logger.ElasticLoggerConfig{
+	el, err := logger.NewElasticLogger(logger.ElasticLoggerConfig{
 		Url:   C.Url,
 		Index: C.Index,
 	})
@@ -73,8 +73,12 @@ func main() {
 	go func() {
 		for {
 			msg := sl.GetMessage()
+
 			ll.Debugf("got msg: %s\n", msg)
 			ll.Debug(msg)
+			if err := el.LogMessage(msg); err != nil {
+				ll.Errorf("failed to log message: %s", err)
+			}
 		}
 	}()
 
