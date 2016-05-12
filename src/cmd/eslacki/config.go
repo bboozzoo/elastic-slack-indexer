@@ -30,6 +30,8 @@ type Config struct {
 	Token string
 	// elastic search URL
 	Url string
+	// index
+	Index string
 }
 
 var (
