@@ -26,14 +26,10 @@ import (
 	"gopkg.in/olivere/elastic.v3"
 )
 
-type elasticLogger struct {
+type ElasticLogger struct {
 	client *elastic.Client
 	conf   ElasticLoggerConfig
 }
-
-var (
-	el elasticLogger
-)
 
 type ElasticLoggerConfig struct {
 	Url   string
@@ -41,12 +37,14 @@ type ElasticLoggerConfig struct {
 	Host  string
 }
 
-func SetupElasticLogger(econf ElasticLoggerConfig) error {
+func NewElasticLogger(econf ElasticLoggerConfig) (*ElasticLogger, error) {
+	var el ElasticLogger
+
 	el.conf = econf
 	var err error
 	el.client, err = elastic.NewClient(elastic.SetURL(el.conf.Url))
 	if err != nil {
-		return errors.Wrap(err, "Elastic Search setup failed")
+		return nil, errors.Wrap(err, "Elastic Search setup failed")
 	}
 
 	if el.conf.Host == "" {
@@ -60,23 +58,35 @@ func SetupElasticLogger(econf ElasticLoggerConfig) error {
 	// check if index exists
 	exists, err := el.client.IndexExists(el.conf.Index).Do()
 	if err != nil {
-		return errors.Wrapf(err, "failed to check if index %s exists",
+		return nil, errors.Wrapf(err, "failed to check if index %s exists",
 			el.conf.Index)
 	}
 
 	if !exists {
 		ci, err := el.client.CreateIndex(el.conf.Index).Do()
 		if err != nil {
-			return errors.Wrapf(err, "failed to create index %s",
+			return nil, errors.Wrapf(err, "failed to create index %s",
 				el.conf.Index)
 		}
 
 		if ci.Acknowledged == false {
-			return errors.Wrapf(err, "failed to create index %s, no ack from the server",
+			return nil, errors.Wrapf(err, "failed to create index %s, no ack from the server",
 				el.conf.Index)
 		}
 	}
 
 	// should be good now
-	return nil
+	return &el, nil
+}
+
+func (el *ElasticLogger) LogMessage(msg interface{}) error {
+
+	_, err := el.client.
+		Index().
+		Index(el.conf.Index).
+		Type("log").
+		BodyJson(msg).
+		Do()
+
+	return err
 }
