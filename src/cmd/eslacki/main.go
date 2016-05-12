@@ -22,6 +22,7 @@
 package main
 
 import (
+	"config"
 	"flag"
 	"logger"
 	"os"
@@ -34,39 +35,37 @@ var (
 )
 
 func main() {
-	var config string
+	var conffile string
 	var debug bool
-	flag.StringVar(&config, "config", "", "configuration file path")
+	flag.StringVar(&conffile, "config", "", "configuration file path")
 	flag.BoolVar(&debug, "debug", false, "debug logging")
 	flag.Parse()
-
-	if config == "" {
-		flag.Usage()
-		os.Exit(1)
-	}
 
 	logger.SetupLocalLogger(logger.LocalLoggerConfig{
 		Debug: debug,
 	})
 
+	if conffile == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
+
 	ll := logger.NewLocalLogger()
 
-	err := LoadConfig(config)
+	err := config.Load(conffile)
 	if err != nil {
-		ll.Errorf("failed to load config: %s", err)
-		os.Exit(1)
+		ll.Fatalf("failed to load config: %s", err)
 	}
 
 	el, err := logger.NewElasticLogger(logger.ElasticLoggerConfig{
-		Url:   C.Url,
-		Index: C.Index,
+		Url:   config.C.Url,
+		Index: config.C.Index,
 	})
 	if err != nil {
-		ll.Errorf("failed to setup elastic search logger: %s", err)
-		os.Exit(1)
+		ll.Fatalf("failed to setup elastic search logger: %s", err)
 	}
 
-	sl := slacklogger.New(C.Token)
+	sl := slacklogger.New(config.C.Token)
 
 	sl.UpdateCache()
 
