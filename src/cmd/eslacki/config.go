@@ -22,6 +22,7 @@
 package main
 
 import (
+	"github.com/pkg/errors"
 	"gopkg.in/gcfg.v1"
 )
 
@@ -48,7 +49,6 @@ func LoadConfig(path string) error {
 		return errors.Wrap(err, "failed to load configuration")
 	}
 
-	log.Printf("configuration: %+v", cfg.Config)
 	C = cfg.Config
 
 	return nil
