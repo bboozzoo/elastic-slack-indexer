@@ -22,20 +22,21 @@
 package slacklogger
 
 import (
-	"fmt"
 	"github.com/bobbytables/slacker"
+	"logger"
 )
 
 type SlackLogger struct {
 	client  *slacker.APIClient
 	scache  cache
 	msgPipe chan LoggedMessage
+	l       *logger.LocalLogger
 }
 
 func (s *SlackLogger) updateChannelsCache() {
 	sch, err := s.client.ChannelsList()
 	if err != nil {
-		panic(fmt.Sprintf("failed to fetch channels list: %s", err.Error()))
+		s.l.Fatalf("failed to fetch channels list: %s", err.Error())
 	}
 	s.scache.updateChannels(sch)
 }
@@ -43,7 +44,7 @@ func (s *SlackLogger) updateChannelsCache() {
 func (s *SlackLogger) updateUsersCache() {
 	su, err := s.client.UsersList()
 	if err != nil {
-		panic(fmt.Sprintf("failed to fetch users list: %s", err.Error()))
+		s.l.Fatalf("failed to fetch users list: %s", err.Error())
 	}
 	s.scache.updateUsers(su)
 }
@@ -53,11 +54,12 @@ func New(token string) *SlackLogger {
 		slacker.NewAPIClient(token, ""),
 		newCache(),
 		make(chan LoggedMessage),
+		logger.NewLocalLogger(),
 	}
 }
 
 func (s *SlackLogger) UpdateCache() {
-	fmt.Println("cache update")
+	s.l.Info("cache update")
 	s.updateChannelsCache()
 	s.updateUsersCache()
 }
@@ -85,13 +87,13 @@ func (s *SlackLogger) HandleMessages() {
 			select {
 			case s.msgPipe <- *lm:
 			default:
-				fmt.Println(lm)
+				s.l.Debug(lm)
 			}
 
 		} else if event.Type == "channel_create" {
-			fmt.Printf("new channel %s\n")
+			s.l.Info("new channel %s")
 		} else if event.Type == "team_joined" {
-			fmt.Printf("user joined a team\n")
+			s.l.Info("user joined a team")
 		}
 	}
 }

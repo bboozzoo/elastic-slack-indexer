@@ -22,8 +22,8 @@
 package slacklogger
 
 import (
-	"fmt"
 	"github.com/bobbytables/slacker"
+	"logger"
 )
 
 type cache struct {
@@ -39,8 +39,9 @@ func newCache() cache {
 }
 
 func (c *cache) updateChannels(sch []*slacker.Channel) {
+	l := logger.NewLocalLogger()
 	for _, channel := range sch {
-		fmt.Printf("adding channel mapping: %s -> %s\n",
+		l.Debugf("adding channel mapping: %s -> %s",
 			channel.ID, channel.Name)
 		c.channels[channel.ID] = channel.Name
 	}
@@ -48,8 +49,9 @@ func (c *cache) updateChannels(sch []*slacker.Channel) {
 }
 
 func (c *cache) updateUsers(su []*slacker.User) {
+	l := logger.NewLocalLogger()
 	for _, user := range su {
-		fmt.Printf("adding user mapping: %s -> %s\n",
+		l.Debugf("adding user mapping: %s -> %s",
 			user.ID, user.Name)
 		c.users[user.ID] = user.Name
 	}

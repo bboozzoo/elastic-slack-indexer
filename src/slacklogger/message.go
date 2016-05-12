@@ -22,8 +22,8 @@
 package slacklogger
 
 import (
-	"fmt"
 	"github.com/bobbytables/slacker"
+	"logger"
 	"regexp"
 	"strconv"
 	"strings"
@@ -45,13 +45,15 @@ func msgTsToTime(ts string) time.Time {
 	split := strings.Split(ts, ".")
 	tmstamp, err := strconv.ParseInt(split[0], 10, 64)
 	if err != nil {
-		fmt.Printf("failed to parse timestamp %s, err: %s\n", ts, err.Error())
+		logger.NewLocalLogger().Errorf("failed to parse timestamp %s, err: %s",
+			ts, err.Error())
 	}
 
 	return time.Unix(tmstamp, 0)
 }
 
 func parseMsgText(text string, c *cache) string {
+	l := logger.NewLocalLogger()
 	found := userOrChannelRe.FindAllStringSubmatch(text, -1)
 
 	for _, match := range found {
@@ -73,7 +75,7 @@ func parseMsgText(text string, c *cache) string {
 			text = strings.Replace(text, match[0], replace, -1)
 		}
 
-		fmt.Printf("replaced text: %s\n", text)
+		l.Debugf("replaced text: %s", text)
 	}
 	return text
 }
