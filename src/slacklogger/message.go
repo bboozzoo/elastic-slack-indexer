@@ -34,7 +34,7 @@ var (
 	userOrChannelRe = regexp.MustCompile("<[@#]([UC][A-Z0-9]+)>")
 )
 
-type LoggedMessage struct {
+type Message struct {
 	User      string
 	Channel   string
 	Timestamp string
@@ -80,7 +80,7 @@ func parseMsgText(text string, c *cache) string {
 	return text
 }
 
-func loggedMsgFromSlackMsg(smsg *slacker.RTMMessage, c *cache) *LoggedMessage {
+func loggedMsgFromSlackMsg(smsg *slacker.RTMMessage, c *cache) *Message {
 
 	user := "@" + c.userIDToName(smsg.User)
 	channel := "#" + c.channelIDToName(smsg.Channel)
@@ -88,7 +88,7 @@ func loggedMsgFromSlackMsg(smsg *slacker.RTMMessage, c *cache) *LoggedMessage {
 
 	text := parseMsgText(smsg.Text, c)
 
-	return &LoggedMessage{
+	return &Message{
 		user,
 		channel,
 		tm.UTC().Format(time.RFC3339Nano),

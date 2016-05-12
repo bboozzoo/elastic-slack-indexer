@@ -29,7 +29,7 @@ import (
 type SlackLogger struct {
 	client  *slacker.APIClient
 	scache  cache
-	msgPipe chan LoggedMessage
+	msgPipe chan Message
 	l       *logger.LocalLogger
 }
 
@@ -53,7 +53,7 @@ func New(token string) *SlackLogger {
 	return &SlackLogger{
 		slacker.NewAPIClient(token, ""),
 		newCache(),
-		make(chan LoggedMessage),
+		make(chan Message),
 		logger.NewLocalLogger(),
 	}
 }
@@ -98,7 +98,7 @@ func (s *SlackLogger) HandleMessages() {
 	}
 }
 
-func (s *SlackLogger) GetMessage() LoggedMessage {
+func (s *SlackLogger) GetMessage() Message {
 
 	msg := <-s.msgPipe
 	return msg
